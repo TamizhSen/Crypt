@@ -1,0 +1,290 @@
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class DES
+{
+    public static String plaintext="how do you like computer science?";
+    public static String key="101101010010100101101011";
+    public static String[]k=new String[2];
+    public static int pad1;
+    public static int pad2;
+    DES()
+    {
+        k=new String[2];
+        k[0]=key.substring(0, 12);
+        k[1]=key.substring(12,24);
+    }
+    public static void setKey(String mykey)
+    {
+        key=mykey;
+        k[0]=key.substring(0, 12);
+        k[1]=key.substring(12,24);
+    }
+ 
+    static int[][] s1={
+                        {15,1,8,14,6,11,3,4,9,7,2,13,12,0,5,10},
+                        {3,13,4,7,15,2,8,14,12,0,1,10,6,9,11,5},
+                        {0,14,7,11,10,4,13,1,5,8,12,6,9,3,2,15},
+                        {13,8,10,1,3,15,4,2,11,6,7,12,0,5,14,9}
+                      };
+     
+    static int[][] s2={
+                         {7,13,14,3,0,6,9,10,1,2,8,5,11,12,4,15},
+                         {13,8,11,5,6,15,0,3,4,7,2,12,1,10,14,9},
+                         {10,6,9,0,12,11,7,13,15,1,3,14,5,2,8,4},
+                         {3,15,0,6,10,1,13,8,9,4,5,11,12,7,2,14}
+                        };
+    
+     public static String to_Alpha(String str)
+    {
+        int n;
+        int count=0;
+        pad1=0;
+        while(str.length()%5!=0)
+        {
+            str+='0';
+            pad1++;
+        }
+       
+        int[] num=new int[str.length()/5];
+       
+        for(int i=0;i<str.length();i=i+5)
+        {
+            n= Integer.parseInt(str.substring(i, i+5), 2);
+            num[count]=n;
+            count++;
+        }
+        char alpha;
+        String ciphertext="";
+        for(int i=0;i<num.length;i++)
+        {
+            if(num[i]==26)
+                alpha=' ';
+            else if(num[i]==27)
+                alpha=',';
+            else if(num[i]==28)
+                alpha='.';
+            else if(num[i]==29)
+                alpha='?';
+            else if(num[i]==30)
+                alpha='(';
+            else if(num[i]==31)
+                alpha=')';
+            else
+                alpha=(char)(num[i]+65);
+           ciphertext+=alpha;
+         }
+        return ciphertext;
+    }
+     public static int[] to_Number(String str)
+     {
+         int alpha;
+         int[] num=new int[str.length()];
+        
+         for(int i=0;i<str.length();i++)
+         {
+             if(str.charAt(i)==' ')
+                 alpha=26;
+             else if(str.charAt(i)==',')
+                 alpha=27;
+             else if(str.charAt(i)=='.')
+                 alpha=28;
+             else if(str.charAt(i)=='?')
+                 alpha=29;
+             else if(str.charAt(i)=='(')
+                 alpha=30;
+             else if(str.charAt(i)==')')
+                 alpha=31;
+             else if(Character.isUpperCase(str.charAt(i)))
+                 alpha=(int)str.charAt(i)-65;
+             else
+                 alpha=(int)str.charAt(i)-97;
+             
+             num[i]=alpha;
+             
+          }
+         return num;
+     }
+     
+    public static String to_Bits(int[] num)
+    {
+        String bits="";
+        for(int i=0;i<num.length;i++)
+        {
+            String b= Integer.toBinaryString(num[i]);
+            while (b.length() < 5) 
+               b = "0" + b;
+            bits+=b;
+        }
+        return bits;
+    }
+    
+    public static String f(String b,String key)
+    {
+        String bnew=b;
+        StringBuilder sb = new StringBuilder();
+        for(int i=0;i<b.length();i++)
+        {
+            if((i+1)%2==0)
+                  bnew+=b.charAt(i);
+        }
+        
+        for (int i = 0; i < bnew.length(); i++) 
+        {
+            sb.append(bnew.charAt(i) ^ key.charAt(i));
+        }
+
+        String str= sb.toString();
+        
+        String row1bin="";
+        String col1bin="";
+        String row2bin="";
+        String col2bin="";
+        String b1=str.substring(0, 6);
+        String b2=str.substring(6, str.length());
+                
+        for(int i=0;i<b1.length();i++)
+        {   
+            if(i==0||i==5)
+            {
+                row1bin+=Character.toString(b1.charAt(i));
+                row2bin+=Character.toString(b2.charAt(i));
+            }
+            else
+            {
+                col1bin+=Character.toString(b1.charAt(i));
+                col2bin+=Character.toString(b2.charAt(i));
+            } 
+        }
+        int row1=Integer.parseInt(row1bin,2);
+        int col1=Integer.parseInt(col1bin,2);
+        int row2=Integer.parseInt(row2bin,2);
+        int col2=Integer.parseInt(col2bin,2);
+        
+        String s1_output=Integer.toBinaryString(s1[row1][col1]);
+        while(s1_output.length()<4)
+            s1_output="0"+s1_output;
+        
+        String s2_output=Integer.toBinaryString(s2[row2][col2]);
+        while(s1_output.length()<4)
+            s2_output="0"+s2_output;
+        String final_output=s1_output+s2_output;        
+        return final_output;  
+    }
+
+    public static List<String> encrypt(String str)
+    {
+        
+        List<String> blocks = new ArrayList<String>();
+        List<String> ciphertemp = new ArrayList<String>();
+        pad2=0;
+        while(str.length()%16!=0)
+        {
+            str+="0";
+            pad2++;
+        }
+        for(int i=0;i<str.length();i=i+16)
+        {
+            blocks.add(str.substring(i, i+16));
+        }
+        
+        for(int i=0;i<blocks.size();i++)
+        {
+            String L=blocks.get(i).substring(0,8);
+            String R=blocks.get(i).substring(8,16);
+            for(int j=1;j<=2;j++)
+            {
+                String prevL=L;
+                String r="";
+                L=R;
+                for(int n=0;n<8;n++)
+                {
+                    String round=f(R,k[j-1]);
+                    while(round.length()!=8)
+                        round="0"+round;
+                    r+=(prevL.charAt(n)^round.charAt(n));
+                }
+                R=r;
+            }
+            ciphertemp.add(L+R);
+        }
+        
+        return ciphertemp;
+   }
+     public static List<String> decrypt(String str)
+    {
+        List<String> blocks = new ArrayList<String>();
+        List<String> ciphertemp = new ArrayList<String>();
+        while(str.length()%16!=0)
+            str+="0";
+        for(int i=0;i<str.length();i=i+16)
+        {
+            blocks.add(str.substring(i, i+16));
+        }
+        for(int i=0;i<blocks.size();i++)
+        {
+            String L=blocks.get(i).substring(0,8);
+            String R=blocks.get(i).substring(8,16);
+            for(int j=2;j>=1;j--)
+            {
+                String prevR=R;
+                R=L;
+                String l="";
+                for(int n=0;n<8;n++)
+                {
+                    String round=f(R,k[j-1]);
+                    while(round.length()!=8)
+                        round="0"+round;
+                    l+=prevR.charAt(n)^round.charAt(n);
+                }
+              L=l;
+            }
+     ciphertemp.add(L+R);
+        }    
+    return ciphertemp;
+   }
+    /* public static void main(String[] args)
+     {
+    	 List<String> ciphertextbin = new ArrayList<String>();
+         List<String> cipher_dec = new ArrayList<String>();
+         DES des=new DES();   
+         System.out.println("PLAIN TEXT:");
+         System.out.println("----------");
+         System.out.println(DES.plaintext);
+         System.out.println("");      
+         String temp="";
+         int[] num_plaintext=DES.to_Number(DES.plaintext);
+         String bin_plaintext= DES.to_Bits(num_plaintext);
+         ciphertextbin=DES.encrypt(bin_plaintext);
+         for(int i=0;i<ciphertextbin.size();i++)
+            temp+=ciphertextbin.get(i);
+         
+         System.out.println("CIPHER TEXT BINARY:");
+         System.out.println("-------------------");
+         System.out.println(temp);
+         System.out.println("");
+                 
+         String ciphertext=DES.to_Alpha(temp);
+         System.out.println("CIPHER TEXT:");
+         System.out.println("-------------");
+         System.out.println(ciphertext);
+         
+         System.out.println("");
+          int[] num_ciphertext=DES.to_Number(ciphertext);
+         String bin_ciphertext=DES.to_Bits(num_ciphertext);
+         bin_ciphertext=bin_ciphertext.substring(0, bin_ciphertext.length()-DES.pad1);
+          
+         cipher_dec=DES.decrypt(bin_ciphertext);
+         temp="";
+         for(int i=0;i<cipher_dec.size();i++)
+            temp+=cipher_dec.get(i);
+        
+         temp=temp.substring(0,temp.length()-DES.pad2);
+         String dec_text=DES.to_Alpha(temp);
+         
+         System.out.println("DECRYPTED TEXT:");
+         System.out.println("---------------");
+         System.out.println(dec_text);
+     }*/
+}

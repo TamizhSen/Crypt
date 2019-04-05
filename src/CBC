@@ -1,0 +1,146 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class CBC 
+{
+    public static String plaintext="cryptography is an important tool for network security. but there are other issues for network security.";
+    public static String vect="";
+    public static int cbcPad1;
+    public static String vecttemp="";
+    CBC()
+    {
+        cbcPad1=0;
+        ArrayList<Integer>  list= new ArrayList<Integer>();
+        list.add(1);
+        list.add(0);
+        for(int i=0;i<16;i++)
+        {
+            Collections.shuffle(list);
+            vect+=list.get(0);
+        }
+     }
+    public static List<String> encrypt(String str)
+    {
+      while(str.length()%16!=0)
+      {
+          str+="0";
+          cbcPad1++;
+      }   
+      String y;     
+      List<String> yc=new ArrayList<String>();
+      List<String> ytemp=new ArrayList<String>();
+      vecttemp=vect;
+      for(int i=0;i<str.length();i=i+16)
+      {
+       String temp=str.substring(i,i+16);
+          
+       y="";
+       for(int j=0;j<16;j++)
+       {
+           y+=vect.charAt(j)^temp.charAt(j);
+       }
+       ytemp =DES.encrypt(y);
+       vect=ytemp.toString().substring(1,ytemp.toString().length()-1);
+       yc.add(vect);
+      }
+        return yc;
+    }
+    
+    public static List<String> decrypt(String str)
+    {
+        List<String> temp=new ArrayList<>();
+        List<String> cX=new ArrayList<>();
+        
+        for(int i=0;i<str.length();i=i+16)
+        {
+            temp.add(str.substring(i,i+16));
+        }
+        for(int j=0;j<temp.size();j++)
+        {
+            String xtemp=""; 
+            String x=DES.decrypt(temp.get(j)).toString();
+            x=x.substring(1, x.length()-1);
+            
+            for(int k=0;k<16;k++)
+            {
+                xtemp+=x.charAt(k)^vecttemp.charAt(k);
+            }
+            vecttemp=temp.get(j);
+        cX.add(xtemp);
+        }
+        return cX;
+    }
+    
+    public static void main(String[] args)
+    {
+    	 List<String> ciphertextbin = new ArrayList<String>();
+    	    List<String> cipher_dec = new ArrayList<String>();
+    	    DES des=new DES();
+    	    int[] num_plaintext=DES.to_Number(DES.plaintext);
+    	    String temp="";
+    	    String ciphertext=DES.to_Alpha(temp);
+    	    int[] num_ciphertext=DES.to_Number(ciphertext);
+    	    String bin_ciphertext=DES.to_Bits(num_ciphertext);
+    	    String bin_plaintext= DES.to_Bits(num_plaintext);
+    	    String dec_text=DES.to_Alpha(temp);
+    	
+    	System.out.println("Cipher Block Chaining (CBC)");
+        System.out.println("*******");
+        
+        CBC cbc=new CBC();
+        System.out.println("PLAIN TEXT:");
+        System.out.println("----------");
+        System.out.println(CBC.plaintext);
+        System.out.println("");
+           
+        System.out.println("KEY:");
+        System.out.println("----------");
+        System.out.println(DES.key);
+        System.out.println("");        
+        temp="";
+        num_plaintext=DES.to_Number(CBC.plaintext);
+        System.out.println("TO Z32:");
+        System.out.println("----------");
+        for(int i=0;i<num_plaintext.length;i++)
+            System.out.print(num_plaintext[i]);
+        System.out.println("\n");
+        bin_plaintext= DES.to_Bits(num_plaintext);
+        System.out.println("Z32 TO BITS:");
+        System.out.println("------------");
+        System.out.println(bin_plaintext);
+        System.out.println("");
+    
+        ciphertextbin=new ArrayList<String>();
+        ciphertextbin=CBC.encrypt(bin_plaintext);
+        
+        for(int i=0;i<ciphertextbin.size();i++)
+           temp+=ciphertextbin.get(i);
+        
+        System.out.println("CIPHER TEXT BINARY:");
+        System.out.println("-------------------");
+        System.out.println(temp);
+        System.out.println("");
+                
+        ciphertext=DES.to_Alpha(temp);
+        System.out.println("CIPHER TEXT:");
+        System.out.println("-------------");
+        System.out.println(ciphertext);
+        System.out.println("");
+
+        num_ciphertext=DES.to_Number(ciphertext);
+        bin_ciphertext=DES.to_Bits(num_ciphertext);
+        bin_ciphertext=bin_ciphertext.substring(0, bin_ciphertext.length()-DES.pad1);
+        cipher_dec=CBC.decrypt(bin_ciphertext);
+        temp="";
+        for(int i=0;i<cipher_dec.size();i++)
+           temp+=cipher_dec.get(i);
+        
+        temp=temp.substring(0,temp.length()-CBC.cbcPad1);
+        dec_text=DES.to_Alpha(temp);
+        
+        System.out.println("DECRYPTED TEXT:");
+        System.out.println("---------------");
+        System.out.println(dec_text);
+    }
+}
